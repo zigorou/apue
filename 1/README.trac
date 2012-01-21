@@ -1,6 +1,7 @@
 = 1 概論 =
 
-1.1, 1.2 は飛ばします。
+OSX 10.6.8 にて実行しています。
+1.1, 1.2, 1.12 は飛ばします。
 
 == 1.3 ファイルとディレクトリ ==
 
@@ -490,4 +491,97 @@ int main(void) {
 SIGINT は割り込みキー (DELETE, Ctrl+C, Ctrl-\) などで発生させる。あるいは kill(2), kill(1) コマンド等でもプロセスに任意のシグナルを送る事が出来る。
 この場合はプロセスの所有者でないと送る事が出来ない。
 
-「プログラム1.8 標準入力からコマンドを読み込み実行する」を 
+「プログラム1.8 標準入力からコマンドを読み込み実行する」を [https://github.com/zigorou/apue/blob/master/1/shell2.c 1/shell2.c] に示す。
+
+{{{
+#!c
+#include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <signal.h>
+#include <unistd.h>
+
+#include "error.h"
+
+#define MAXLINE 4096
+
+static void sig_int(int);
+
+int main(void) {
+    char  buf[MAXLINE];
+    pid_t pid;
+    int   status;
+
+    if (signal(SIGINT, sig_int) == SIG_ERR)
+        err_sys("signal error");
+
+    printf("%% ");
+    while (fgets(buf, MAXLINE, stdin) != NULL) {
+        buf[strlen(buf) - 1] = '\0'; /* replace newline with null */
+        
+        if (( pid = fork() ) < 0) {
+            err_sys("fork error");
+        }
+        else if ( pid == 0 ) { /* child process */
+            if ( execlp(buf, buf, (char *) 0) == -1)
+                err_ret("couldn't execute: %s", buf);
+            exit(127);
+        }
+
+        /* parent */
+        if ( ( pid = waitpid(pid, &status, 0) ) < 0)
+            err_sys("waitpid error");
+
+        printf("%% ");
+    }
+
+    if (ferror(stdin))
+        err_sys("fgets error");
+
+    exit(0);
+}
+
+void sig_int(int signo) {
+    printf("interrupt\n%% ");
+}
+}}}
+
+man 3 signal してみると、定義は次のようになる。(ちなみに CentOS でやったら、セクション2になってた)
+
+{{{
+#!c
+#include <signal.h>
+typedef void (*sig_t) (int);
+sig_t signal(int sig, sig_t func);
+}}}
+
+関数ポインタが上手く読めない場合は、最終的に定義した sig_int 関数とこの typedef 宣言(最終的に sig_t という型を宣言している)を見比べれば理解出来る。
+
+== 1.10 UNIX の時計 ==
+
+ 1. カレンダー時間
+   * いわゆる UNIX TIMESTAMP で UTC からの経過秒。time_t で表される。
+ 2. プロセス時間
+   * CPU 時間とも言われる
+   * プロセスが使用した CPU 資源を測定した物
+   * クロック刻みで測定されたもの
+     * 50, 60, 100(clocks/sec) のいずれか (POSIX では CLK_TCK 定数で提供されるが、現在この定数は使われていない)
+   * clock_t でこの時間が表される
+   * 実時間 (wall clock time), ユーザーCPU時間、システムCPU時間がある
+     * 実時間はプロセスの実行に要した経過時間 (ほかのプロセスに影響を受ける)
+     * ユーザーCPU時間はユーザーの操作に割り当てられたCPU時間
+     * システムCPU時間はカーネルの活動に割り当てられたCPU時間
+
+== 1.11 システムコールとライブラリ関数 ==
+
+ * 使う側からは同じCの関数であると見なせる
+ * ライブラリ関数は書き換え可能であるが、システムコールは不可能
+ * printf(3) <-> write(2)
+ * malloc(3) <-> sbrk(2)
+
+== 1.13 演習問題 ==
+
+巻末参照
