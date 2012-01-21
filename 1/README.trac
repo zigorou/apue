@@ -85,6 +85,13 @@ int main(int argc, char **argv) {
 
 という一連の操作になる。
 
+{{{
+#!c
+DIR * opendir(const char *dirname);
+struct dirent *readdir(DIR *dirp);
+int closedir(DIR *dirp);
+}}}
+
 man 3 opendir より、
 
   The opendir() function opens the directory named by dirname, associates a directory stream with it, 
@@ -105,3 +112,63 @@ man 3 opendir より、
  アンバッファド入出力::
    open(2), read(2), write(2), lseek(2), close(2) といったシステムコールは、バッファリングしない入出力機能を提供する。これらの関数はファイル記述子を通して用いられる。
 
+次に「プログラム1.2 標準入力から標準出力へのコピー」を [https://github.com/zigorou/apue/blob/master/1/mycat.c 1/mycat.c] として以下に示す。
+
+{{{
+#!c
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
+
+#include "error.h"
+
+#define BUFFSIZE 8192
+
+int main(int argc, char **argv) {
+    int n;
+    char buf[BUFFSIZE];
+
+    while ( ( n = read(STDIN_FILENO, buf, BUFFSIZE) ) > 0 ) {
+        if (write(STDOUT_FILENO, buf, n) != n)
+            err_sys("write error");
+    }
+    
+    if ( n < 0 )
+        err_sys("read error");
+
+    exit(0);
+}
+}}}
+
+STDIN_FILENO, STDOUT_FILENO は unistd.h で定義されている。read(2), write(2) に伴うヘッダファイルの include は man を参照の事。
+
+{{{
+#!c
+ssize_t read(int fildes, void *buf, size_t nbyte);
+ssize_t write(int fildes, const void *buf, size_t nbyte);
+}}}
+
+man 2 read すると、
+
+    RETURN VALUES
+         If successful, the number of bytes actually read is returned.
+         Upon reading end-of-file, zero is returned.
+         Otherwise, a -1 is returned and the global variable errno is set to indicate the error.
+
+とある。つまり、通常は読み込めたバイト数を返す。0 が返ってきた場合は EOF であり、-1 が返ってきた場合は何らかのエラーが返ってきており、詳細は errno というグローバル変数にエラーコードが設定されている。詳細なエラーは man に書いてある。
+
+次に man 2 write する。
+
+    RETURN VALUES
+         Upon successful completion the number of bytes which were written is returned.
+         Otherwise, a -1 is returned and the global variable errno is set to indicate the error.
+
+書き込めたバイト数が通常は返され、-1 が返ってきたときはエラーであるという点は read(2) と同じインターフェースである。
+
+ 標準入出力関数::
+   read(2), write(2) のようなアンバッファド入出力関数ではなく、バッファリングする関数の事。stdio.h で提供されている。
+   fgets(3), getc(3), putc(3) のような関数がそれに該当する。
+
+次に「プログラム1.3 標準入出力関数を用いた標準入力から標準出力へのコピー」を []
