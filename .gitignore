@@ -2,5 +2,7 @@
 1/mycat
 1/getcputc
 1/hello
-1/shell1
+1/shell[12]
+1/testerror
+1/uidgid
 *.[oa]
