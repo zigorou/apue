@@ -23,3 +23,6 @@ getcputc.o: error.h
 
 hello: hello.o
 hello.o:
+
+shell1: shell1.o error.o
+shell1.o: error.h

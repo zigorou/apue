@@ -75,7 +75,8 @@ int main(int argc, char **argv) {
 }
 }}}
 
-少し脱線すると、利用する標準関数として opendir(3), readdir(3), closedir(3) があり、これらを man 3 opendir 等すると dirent.h を include しなければならないのは容易に分かる。
+少し脱線すると、利用する標準関数として opendir(3), readdir(3), closedir(3) があり、
+これらを man 3 opendir 等すると dirent.h を include しなければならないのは容易に分かる。
 その他に exit(3) を使うので stdlib.h を include し、さらに NULL は stddef.h で定義されている。
 
 ディレクトリ内部を列挙するに辺り行う操作の手順は、
@@ -233,3 +234,38 @@ int ferror(FILE *stream);
  プロセスとプロセスID::
    プログラムの実行中のインスタンスをプロセスと呼ぶ。
    プロセスにはプロセスIDという一意な値が割り当てられる。この値は非負の整数である。
+
+「プログラム1.4 プロセスIDの出力」を [https://github.com/zigorou/apue/blob/master/1/hello.c 1/hello.c] に示す。
+
+{{{
+#!c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int main(void) {
+    printf("hello world from process ID %d\n", getpid());
+    exit(0);
+}
+}}}
+
+man 2 getpid すると、
+
+{{{
+#!c
+pid_t getpid(void);
+}}}
+
+という定義である。
+
+    DESCRIPTION
+         Getpid() returns the process ID of the calling process.  The ID is guaranteed to be unique and is useful for constructing temporary file names.
+         Getppid() returns the process ID of the parent of the calling process.
+    ERRORS
+         The getpid() and getppid() functions are always successful, and no return value is reserved to indicate an error.
+
+引用して読めばそのままなので特に解説しない。
+
+ プロセス制御::
+   プログラムを制御するための重要なシステムコールとして fork(2), exec(3), waitpid(2) がある。
+

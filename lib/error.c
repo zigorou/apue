@@ -23,6 +23,15 @@ void err_doit(int useerrno, const char *fmt, va_list ap) {
     return;
 }
 
+void err_ret(const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    err_doit(1, fmt, ap);
+    va_end(ap);
+
+    return;
+}
+
 void err_quit(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
