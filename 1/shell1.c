@@ -35,5 +35,8 @@ int main(void) {
         printf("%% ");
     }
 
+    if (ferror(stdin))
+        err_sys("fgets error");
+
     exit(0);
 }

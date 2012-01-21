@@ -269,3 +269,142 @@ pid_t getpid(void);
  プロセス制御::
    プログラムを制御するための重要なシステムコールとして fork(2), exec(3), waitpid(2) がある。
 
+「プログラム1.5 標準入力からコマンドを読み込み実行する」を [https://github.com/zigorou/apue/blob/master/1/shell1.c 1/shell1.c] に示す。
+
+{{{
+#!c
+#include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+#include "error.h"
+
+#define MAXLINE 4096
+
+int main(void) {
+    char  buf[MAXLINE];
+    pid_t pid;
+    int   status;
+
+    printf("%% ");
+    while (fgets(buf, MAXLINE, stdin) != NULL) {
+        buf[strlen(buf) - 1] = '\0'; /* replace newline with null */
+        
+        if (( pid = fork() ) < 0) {
+            err_sys("fork error");
+        }
+        else if ( pid == 0 ) { /* child process */
+            if ( execlp(buf, buf, (char *) 0) == -1)
+                err_ret("couldn't execute: %s", buf);
+            exit(127);
+        }
+
+        /* parent */
+        if ( ( pid = waitpid(pid, &status, 0) ) < 0)
+            err_sys("waitpid error");
+
+        printf("%% ");
+    }
+
+    if (ferror(stdin))
+        err_sys("fgets error");
+
+    exit(0);
+}
+}}}
+
+fgets(3) は FILE 構造体のポインタから一気に1行読み込む為に用いる標準入出力関数である。
+
+{{{
+#!c
+char *fgets(char *restrict s, int n, FILE *restrict stream);
+}}}
+
+Ctrl+D して EOF を渡すと fgets(3) は NULL を返すのでそれを while の終了条件としている。
+
+    RETURN VALUES
+         Upon successful completion, fgets() and gets() return a pointer to the string.
+         If end-of-file occurs before any characters are read, they return NULL and the buffer contents remain unchanged.
+         If an error occurs, they return NULL and the buffer contents are indeterminate.
+         The fgets() and gets() functions do not distinguish between end-of-file and error; 
+         callers must use feof(3) and ferror(3) to determine which occurred.
+
+厳密には NULL ポインタが返ってきた場合は getc(3) でやったように ferror(3) で検査するべきなので、ここでは遭えて付け加えてみた。
+
+execlp(3) に渡す文字列として、改行で終わる文字列を渡してはいけないので、strlen(3) で文字列の長さ (sizeof だと null 終端まで計算してしまう点との違いに注意) を求めて、
+その要素を null 文字で置き換える。
+
+次に fork(2) は、
+
+{{{
+#!c
+pid_t fork(void);
+}}}
+
+で、man 2 fork より
+
+    RETURN VALUES
+         Upon successful completion, fork() returns a value of 0 to the child process and returns the process ID of the child process to the parent process.
+         Otherwise, a value of -1 is returned to the parent process, no child process is created, 
+         and the global variable errno is set to indicate the error.
+
+とあるので、
+
+ 1. pid_t が -1 の場合はエラーと見なす
+ 2. pid_t が 0 を返すプロセスは新しく作られた子プロセスである
+ 3. pid_t が正数の場合はこの pid_t は新たに作られた子プロセスのプロセスIDで、そこは親プロセスである
+
+と言う風に取り扱う。
+
+fork(2) に続けた exec(3) の組み合わせを別の OS では新規プロセスの '''spawn''' と言う。
+
+execlp(3) の定義は以下になる。
+
+{{{
+#!c
+int execlp(const char *file, const char *arg0, ... /*, (char *)0 */);
+}}}
+
+この関数は、コマンド, 引数1, 引数2, ... と指定出来るが、va_list の終端を知らせる為に null ポインターを最後に指定する必要がある。
+この例では引数の解析を行っていないので、引数付きのコマンド実行が出来ないようになっている。
+
+最後に waitpid(2) だが、
+
+{{{
+#!c
+pid_t waitpid(pid_t pid, int *stat_loc, int options);
+}}}
+
+という定義である。
+
+waitpid(2) は子プロセスの終了を待つが、子プロセスがどのように終了したかは stat_loc に記載される。この例では使っていないが、sys/wait.h で提供されているマクロによって検査する事が出来る。options では WNOHANG (子プロセスの終了までブロックさせない) 等のオプションを論理和で指定する。この例では何も指定していない。
+
+== 1.6 ANSI C の特徴 ==
+
+ 関数プロトタイプ::
+   read(2), write(2), getpid(2) などのシステムコールの関数プロトタイプは unistd.h に含まれている。
+
+ 汎用 (void) ポインタ::
+   read(2), write(2) 等のバッファの指定は char * ではなく void * となっている。
+
+これによって、適当なデータ型をそのバッファに指定する事が出来る。
+システムのバイトオーダーの違いに留意すべきだが、この事実はC言語で取り扱えるデータ型をそのままファイル等に書き出したり読み出したり出来ると言った利点がある。
+
+また void ポインタが引数になっている場合は明示的なキャスト (void *) data のような事は必要なく、さらに void ポインタが戻り値の場合も、特にキャストして受け取る必要は無い。
+
+ 基本的なシステムデータ型::
+   _t (size_t, ssize_t, pid_t 等) で終わるデータ型を基本的なシステムデータ型と呼ぶ。
+   これらは sys/types.h で定義される。
+
+ * read(3), write(3) の戻り値は ssize_t
+   * 一方で第三引数は size_t で無ければならない
+ * プロセスIDを取り扱う場合は pid_t で無ければならない
+
+== 1.7 エラー処理 ==
+
+
+
