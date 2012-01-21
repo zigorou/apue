@@ -1,8 +1,8 @@
 VPATH = ../lib ../include
 CC = gcc
 CPPFLAGS = -Wall -I../include
-TARGETS = myls mycat getcputc
-OBJECTS = error.o myls.o mycat.o getcputc.o
+TARGETS = myls mycat getcputc hello
+OBJECTS = error.o myls.o mycat.o getcputc.o hello.o
 
 all: $(TARGETS)
 
@@ -20,3 +20,6 @@ mycat: error.h
 
 getcputc: getcputc.o error.o
 getcputc.o: error.h
+
+hello: hello.o
+hello.o:

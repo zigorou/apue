@@ -1,4 +1,6 @@
-= 1. 概論 =
+= 1 概論 =
+
+1.1, 1.2 は飛ばします。
 
 == 1.3 ファイルとディレクトリ ==
 
@@ -225,3 +227,9 @@ int ferror(FILE *stream);
          The putw() function returns 0 on success; EOF is returned if a write error occurs, or if an attempt is made to write a read-only stream.
 
 書き込んだ char が戻ってくるが、EOF が返ってきたらエラーである。
+
+== 1.5 プログラムとプロセス ==
+
+ プロセスとプロセスID::
+   プログラムの実行中のインスタンスをプロセスと呼ぶ。
+   プロセスにはプロセスIDという一意な値が割り当てられる。この値は非負の整数である。
