@@ -26,4 +26,82 @@
 
 この輪講を通じてお世話になるセクションのほどんどは2, 3だと思われる。
 
-脱線したが、ここでサンプルとして出ている 1/myls.c は以下にになる。
+コードに移る前に、[http://www.apuebook.com/index.html Advanced Programming in the UNIX® Environment, Second Edition] にある Source Code の配置を参考にしつつ、自分は以下のようなディレクトリ構成で進める事にした。
+
+{{{
+$ tree
+.
+├── 1
+│   ├── Makefile
+│   ├── README.trac
+│   └── myls.c
+├── include
+│   └── error.h
+└── lib
+    └── error.c
+}}}
+
+[https://github.com/zigorou/apue/blob/master/lib/error.c error.c], [https://github.com/zigorou/apue/blob/master/lib/error.h error.h] では頻出するエラー発生時のメッセージ表示及び exit(3) を行う関数群が入っている。これは UNIX Network Programming より拝借して適当に書き直したものである。
+
+ここで「プログラム1.1 ディレクトリ内のすべてのファイルをリストする」を [https://github.com/zigorou/apue/blob/master/1/myls.c 1/myls.c] として示す。
+
+{{{
+#!c
+#include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <dirent.h>
+
+#include "error.h"
+
+int main(int argc, char **argv) {
+    DIR *dp;
+    struct dirent *dirp;
+    
+    if (argc != 2)
+        err_quit("a single argument (the directory name) is required");
+
+    if ( ( dp = opendir(argv[1]) ) == NULL )
+        err_sys("can't open %s", argv[1]);
+
+    while (( dirp = readdir(dp) ) != NULL)
+        printf("%s\n", dirp->d_name);
+
+    closedir(dp);
+
+    exit(0);
+}
+}}}
+
+少し脱線すると、利用する標準関数として opendir(3), readdir(3), closedir(3) があり、これらを man 3 opendir 等すると dirent.h を include しなければならないのは容易に分かる。
+その他に exit(3) を使うので stdlib.h を include し、さらに NULL は stddef.h で定義されている。
+
+ディレクトリ内部を列挙するに辺り行う操作の手順は、
+
+ 1. opendir(3) で DIR ポインタを生成
+ 2. readdir(3) で DIR ポインタを元に NULL が返るまで dirent 構造体ポインタを取得する
+ 3. dirent 構造体ポインタを参照
+ 4. closedir(3) によって DIR ポインタを閉じる
+
+という一連の操作になる。
+
+man 3 opendir より、
+
+  The opendir() function opens the directory named by dirname, associates a directory stream with it, 
+  and returns a pointer to be used to identify the directory stream in subsequent operations. 
+  The pointer NULL is returned if dirname cannot be accessed or if it cannot malloc(3) enough memory to hold the whole thing.
+
+とあるように、opendir(3) は dirname にアクセス出来なかったり十分なメモリが確保できない際に NULL ポインタを返す。一方で readdir(3) は、
+
+  The readdir() function returns a pointer to the next directory entry. 
+  It returns NULL upon reaching the end of the directory or detecting an invalid seekdir() operation.
+
+とあるので、NULL ポインタが返ってくるまで dirent 構造体のポインタが返ってくる事が分かる。
+
+== 1.4 入力と出力 ==
+
+ ファイル記述子 (file descriptor)::
+   プロセスが参照するファイル等を識別するためにカーネルが使用する非負の整数。カーネルがファイルを開いたり作ったりする度に、ファイル記述子を返す。
+ アンバッファド入出力::
+   open(2), read(2), write(2), lseek(2), close(2) といったシステムコールは、バッファリングしない入出力機能を提供する。これらの関数はファイル記述子を通して用いられる。
+
