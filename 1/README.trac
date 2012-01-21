@@ -171,4 +171,57 @@ man 2 read すると、
    read(2), write(2) のようなアンバッファド入出力関数ではなく、バッファリングする関数の事。stdio.h で提供されている。
    fgets(3), getc(3), putc(3) のような関数がそれに該当する。
 
-次に「プログラム1.3 標準入出力関数を用いた標準入力から標準出力へのコピー」を []
+次に「プログラム1.3 標準入出力関数を用いた標準入力から標準出力へのコピー」を [https://github.com/zigorou/apue/blob/master/1/getcputc.c 1/getcputc.c] に示す。
+
+{{{
+#!c
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "error.h"
+
+int main(int argc, char **argv) {
+    int c;
+
+    while ( ( c = getc(stdin) ) != EOF ) {
+        if ( putc(c, stdout) == EOF )
+            err_sys("output error");
+    }
+
+    if (ferror(stdin))
+        err_sys("input error");
+
+    exit(0);
+}
+}}}
+
+{{{
+#!c
+int getc(FILE *stream);
+int putc(int c, FILE *stream);
+int ferror(FILE *stream);
+}}}
+
+まずは man 3 getc より、
+
+    RETURN VALUES
+        If successful, these routines return the next requested object from the stream. 
+        Character values are returned as an unsigned char converted to an int.
+        If the stream is at end-of-file or a read error occurs, the routines return EOF. 
+        The routines feof(3) and ferror(3) must be used to distinguish between end-of-file and error. 
+        If an error occurs, the global variable errno is set to indicate the error. 
+        The end-of-file condition is remembered, even on a terminal, 
+        and all subsequent attempts to read will return EOF until the condition is cleared with clearerr(3).
+
+通常は読み込んだ 1 byte の unsigned char を int にコンバートした物が返される。ファイルの終端またはエラーが発生した場合は EOF が返される。
+(つまり EOF は本当の意味での EOF ではなく、エラーが発生している場合もある)
+従って、このサンプルコードにあるように getc(3) で EOF が発生した後に ferror(3) により検査する必要がある。
+
+次に man 3 putc を見る。
+
+    RETURN VALUES
+         The functions, fputc(), putc(), putchar(), putc_unlocked(), and putchar_unlocked() return the character written.
+         If an error occurs, the value EOF is returned.
+         The putw() function returns 0 on success; EOF is returned if a write error occurs, or if an attempt is made to write a read-only stream.
+
+書き込んだ char が戻ってくるが、EOF が返ってきたらエラーである。
