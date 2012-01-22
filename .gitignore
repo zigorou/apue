@@ -5,4 +5,5 @@
 1/shell[12]
 1/testerror
 1/uidgid
+2/sysconfpathconf
 *.[oa]
