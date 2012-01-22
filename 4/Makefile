@@ -1,8 +1,8 @@
 VPATH = ../lib ../include
 CC = gcc
 CPPFLAGS = -Wall -I../include
-TARGETS = filetype
-OBJECTS = filetype.o error.o
+TARGETS = filetype access
+OBJECTS = filetype.o access.o error.o
 
 all: $(TARGETS)
 
@@ -16,3 +16,6 @@ open_max.o: open_max.h error.h
 
 filetype: filetype.o error.o
 filetype.o: error.h
+
+access: access.o error.o
+access.o: error.h
