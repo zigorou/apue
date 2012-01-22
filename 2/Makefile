@@ -1,8 +1,8 @@
 VPATH = ../lib ../include
 CC = gcc
 CPPFLAGS = -Wall -I../include
-TARGETS = sysconfpathconf
-OBJECTS = sysconfpathconf.o error.o path_alloc.o open_max.o
+TARGETS = sysconfpathconf dynamiclimit
+OBJECTS = sysconfpathconf.o dynamiclimit.o error.o path_alloc.o open_max.o
 
 all: $(TARGETS)
 
