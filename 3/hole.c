@@ -9,6 +9,9 @@
 static const char buf1[] = "abcdefghij";
 static const char buf2[] = "ABCDEFGHIJ";
 
+/*
+ * od -tx1c file.hole
+ */
 int main(void) {
     int fd;
 
@@ -23,6 +26,8 @@ int main(void) {
 
     if ( write(fd, buf2, 10) != 10 )
         err_sys("buf2 write error");
+
+    close(fd);
 
     exit(0);
 }

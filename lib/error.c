@@ -47,3 +47,12 @@ void err_sys(const char *fmt, ...) {
     va_end(ap);
     exit(1);
 }
+
+void err_dump(const char *fmt, ...) {
+	va_list		ap;
+	va_start(ap, fmt);
+	err_doit(1, fmt, ap);
+	va_end(ap);
+	abort();
+	exit(1);
+}
