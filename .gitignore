@@ -6,4 +6,5 @@
 1/testerror
 1/uidgid
 2/sysconfpathconf
+2/dynamiclimit
 *.[oa]
