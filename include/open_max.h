@@ -1,8 +1,8 @@
-#ifndef __OPEN_MAX_H
-#define __OPEN_MAX_H 1
+#ifndef _OPEN_MAX_H_
+#define _OPEN_MAX_H_ 1
 
 #define OPEN_MAX_GUESS 256
 
 int open_max(void);
 
-#endif
+#endif /* _OPEN_MAX_H_ */
