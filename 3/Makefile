@@ -2,7 +2,7 @@ VPATH = ../lib ../include
 CC = gcc
 CPPFLAGS = -Wall -I../include
 TARGETS = seek hole
-OBJECTS = seek.o hole.c
+OBJECTS = seek.o hole.o
 
 all: $(TARGETS)
 
