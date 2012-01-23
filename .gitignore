@@ -12,4 +12,8 @@
 3/file.hole
 3/fileflags
 4/filetype
+4/access
+4/umask
+4/foo
+4/bar
 *.[oa]
