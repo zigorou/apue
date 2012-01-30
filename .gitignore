@@ -17,4 +17,6 @@
 4/foo
 4/bar
 4/changemod
+4/unlink
+4/tempfile
 *.[oa]

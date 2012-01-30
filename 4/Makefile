@@ -1,9 +1,9 @@
 VPATH = ../lib ../include
-CC = gcc
-CPPFLAGS = -Wall -I../include
-TARGETS = filetype access umask changemod
-OBJECTS = filetype.o access.o umask.o changemod.o error.o
-FILES   = foo bar
+CC := gcc
+CPPFLAGS := -Wall -I../include
+TARGETS = filetype access umask changemod unlink
+OBJECTS = filetype.o access.o umask.o changemod.o error.o unlink.o
+FILES   = foo bar tempfile
 
 all: $(TARGETS)
 
@@ -27,3 +27,6 @@ umask.o: error.h
 
 changemod: changemod.o error.o
 changemod.o: error.h
+
+unlink: unlink.o error.o
+unlink.o: error.h
