@@ -36,3 +36,6 @@ zap.o: error.h
 
 zap2: zap2.o error.o
 zap2.o: error.h
+
+ftw4: ftw4.o error.o path_alloc.o
+ftw4.o: error.h path_alloc.h

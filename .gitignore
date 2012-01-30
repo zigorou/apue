@@ -20,4 +20,5 @@
 4/unlink
 4/tempfile
 4/zap2?
+4/ftw4
 *.[oa]
