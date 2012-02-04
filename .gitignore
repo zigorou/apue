@@ -1,3 +1,8 @@
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+install_manifest.txt
 1/myls
 1/mycat
 1/getcputc
@@ -23,3 +28,5 @@
 4/zap2?
 4/ftw4
 *.[oa]
+*.dylib
+*.so

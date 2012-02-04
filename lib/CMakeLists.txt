@@ -1,0 +1,1 @@
+add_library(apue SHARED error.c open_max.c path_alloc.c set_fl.c)
