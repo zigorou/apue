@@ -22,3 +22,12 @@ target_link_libraries(zap2 apue)
 add_executable(ftw4 ftw4.c)
 target_link_libraries(ftw4 apue)
 
+add_executable(mycd mycd.c)
+target_link_libraries(mycd apue)
+
+add_executable(getcwd getcwd.c)
+target_link_libraries(getcwd apue)
+
+add_executable(devrdev devrdev.c)
+target_link_libraries(devrdev apue)
+

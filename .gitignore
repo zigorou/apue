@@ -27,6 +27,10 @@ install_manifest.txt
 4/tempfile
 4/zap2?
 4/ftw4
+4/mycd
+4/cdpwd
+4/getcwd
+4/devrdev
 *.[oa]
 *.dylib
 *.so
