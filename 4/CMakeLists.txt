@@ -57,3 +57,7 @@ target_link_libraries(ftw4_chdir apue)
 # 4.18
 add_executable(mkdir_recursive mkdir_recursive.c)
 target_link_libraries(mkdir_recursive apue)
+
+# 4.19
+add_executable(unlink_creat unlink_creat.c)
+target_link_libraries(unlink_creat apue)
