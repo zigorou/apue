@@ -39,6 +39,7 @@ install_manifest.txt
 4/unlink_creat
 5/fgetcfputc
 5/fgetsfputs
+5/buf
 *.[oa]
 *.dylib
 *.so
