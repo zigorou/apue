@@ -33,6 +33,9 @@ install_manifest.txt
 4/cdpwd
 4/getcwd
 4/devrdev
+4/mycp
+4/ftw4_chdir
+4/mkdir_recursive
 *.[oa]
 *.dylib
 *.so

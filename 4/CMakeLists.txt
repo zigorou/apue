@@ -45,3 +45,15 @@ target_link_libraries(devrdev apue)
 # 4.1
 add_executable(filetype2 filetype2.c)
 target_link_libraries(filetype2 apue)
+
+# 4.7
+add_executable(mycp mycp.c)
+target_link_libraries(mycp apue)
+
+# 4.12
+add_executable(ftw4_chdir ftw4_chdir.c)
+target_link_libraries(ftw4_chdir apue)
+
+# 4.18
+add_executable(mkdir_recursive mkdir_recursive.c)
+target_link_libraries(mkdir_recursive apue)
