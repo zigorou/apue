@@ -18,6 +18,7 @@ install_manifest.txt
 3/fileflags
 3/mycat_buf
 4/filetype
+4/filetype2
 4/access
 4/umask
 4/foo
@@ -25,7 +26,8 @@ install_manifest.txt
 4/changemod
 4/unlink
 4/tempfile
-4/zap2?
+4/zap
+4/zap2
 4/ftw4
 4/mycd
 4/cdpwd

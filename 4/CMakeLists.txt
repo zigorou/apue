@@ -1,33 +1,47 @@
+# 4.1
 add_executable(filetype filetype.c)
 target_link_libraries(filetype apue)
 
+# 4.2
 add_executable(access access.c)
 target_link_libraries(access apue)
 
+# 4.3
 add_executable(umask umask.c)
 target_link_libraries(umask apue)
 
+# 4.4
 add_executable(changemod changemod.c)
 target_link_libraries(changemod apue)
 
+# 4.5
 add_executable(unlink unlink.c)
 target_link_libraries(unlink apue)
 
+# 4.6
 add_executable(zap zap.c)
 target_link_libraries(zap apue)
 
 add_executable(zap2 zap2.c)
 target_link_libraries(zap2 apue)
 
+# 4.7
 add_executable(ftw4 ftw4.c)
 target_link_libraries(ftw4 apue)
 
+# 4.8
 add_executable(mycd mycd.c)
 target_link_libraries(mycd apue)
 
+# 4.9
 add_executable(getcwd getcwd.c)
 target_link_libraries(getcwd apue)
 
+# 4.10
 add_executable(devrdev devrdev.c)
 target_link_libraries(devrdev apue)
 
+### execises 
+# 4.1
+add_executable(filetype2 filetype2.c)
+target_link_libraries(filetype2 apue)
