@@ -37,6 +37,8 @@ install_manifest.txt
 4/ftw4_chdir
 4/mkdir_recursive
 4/unlink_creat
+5/fgetcfputc
+5/fgetsfputs
 *.[oa]
 *.dylib
 *.so
