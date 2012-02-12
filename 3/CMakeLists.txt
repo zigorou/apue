@@ -11,3 +11,9 @@ target_link_libraries(mycat_buf apue)
 
 add_executable(mycat2 mycat2.c)
 target_link_libraries(mycat2 apue)
+
+add_executable(mydup2 mydup2.c)
+target_link_libraries(mydup2 apue)
+
+add_executable(o_append_and_lseek o_append_and_lseek.c)
+target_link_libraries(o_append_and_lseek apue)
