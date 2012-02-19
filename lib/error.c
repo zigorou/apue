@@ -14,10 +14,10 @@ void err_doit(int useerrno, const char *fmt, va_list ap) {
     errno_orig = errno;
     vsnprintf(buf, MAXLINE, fmt, ap);
     if (useerrno) {
-        strcat(buf, ": ");
-        strcat(buf, strerror(errno_orig));
+        strncat(buf, ": ", MAXLINE + 1);
+        strncat(buf, strerror(errno_orig), MAXLINE + 1);
     }
-    strcat(buf, "\n");
+    strncat(buf, "\n", MAXLINE + 1);
     fputs(buf, stderr);
 
     return;

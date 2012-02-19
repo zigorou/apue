@@ -5,8 +5,6 @@
 #include "error.h"
 #include "open_max.h"
 
-#include <limits.h>
-
 #ifdef OPEN_MAX
 static int openmax = OPEN_MAX;
 #else
@@ -25,5 +23,5 @@ int open_max(void) {
         }
     }
 
-    return(openmax);
+    return openmax;
 }

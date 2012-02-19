@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "error.h"
+#include "open_max.h"
 
 int mydup2(int filedes1, int filedes2);
 
@@ -41,23 +42,22 @@ int main(int argc, char **argv) {
 }
 
 int mydup2(int filedes1, int filedes2) {
-    long open_max;
     int i, j, fd, *fds;
+
+    if (filedes1 == filedes2)
+        return filedes2;
 
     if ( filedes1 < 0 || filedes2 < 0 ) {
         errno = EBADF;
         return -1;
     }
 
-    if ( ( open_max = sysconf(_SC_OPEN_MAX) ) == -1 )
-        err_sys("sysconf error");
-    
-    if ( open_max < filedes2 ) {
+    if ( open_max() < filedes2 ) {
         errno = EBADF;
         return -1;
     }
 
-    if ( ( fds = calloc(sizeof(int), (size_t) open_max) ) == NULL )
+    if ( ( fds = calloc(sizeof(int), (size_t) open_max()) ) == NULL )
         err_sys("calloc error");
     
     for (i = 0; i < filedes2; i++) {
@@ -73,6 +73,8 @@ int mydup2(int filedes1, int filedes2) {
     for (j = 0; j < i; j++) {
         close(fds[j]);
     }
+
+    free(fds);
 
     return fd;
 }
