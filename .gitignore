@@ -20,6 +20,7 @@ install_manifest.txt
 3/mycat2
 3/mydup2
 3/o_append_and_lseek
+3/dup_and_lseek
 4/filetype
 4/filetype2
 4/access

@@ -17,3 +17,6 @@ target_link_libraries(mydup2 apue)
 
 add_executable(o_append_and_lseek o_append_and_lseek.c)
 target_link_libraries(o_append_and_lseek apue)
+
+add_executable(dup_and_lseek dup_and_lseek.c)
+target_link_libraries(dup_and_lseek apue)
