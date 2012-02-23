@@ -20,3 +20,6 @@ target_link_libraries(o_append_and_lseek apue)
 
 add_executable(dup_and_lseek dup_and_lseek.c)
 target_link_libraries(dup_and_lseek apue)
+
+add_executable(open_fdescfs open_fdescfs.c)
+target_link_libraries(open_fdescfs apue)
