@@ -15,6 +15,12 @@ add_executable(changemod changemod.c)
 target_link_libraries(changemod apue)
 
 # 4.5
+option(UNLINK_DEBUG "debugging mode for unlink.c" OFF)
+option(UNLINK_SLEEP "wait time for ls" 15)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/unlink_config.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/unlink_config.h
+)
 add_executable(unlink unlink.c)
 target_link_libraries(unlink apue)
 

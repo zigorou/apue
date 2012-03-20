@@ -1,0 +1,2 @@
+#cmakedefine UNLINK_DEBUG
+#cmakedefine UNLINK_SLEEP
