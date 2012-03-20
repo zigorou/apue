@@ -1,0 +1,223 @@
+= 4. ファイルとディレクトリ(2) =
+
+== 4.13 ファイルの切り詰め ==
+
+{{{
+#!c
+#include <unistd.h>
+
+int ftruncate(int fildes, off_t length);
+int truncate(const char *path, off_t length);
+}}}
+
+ RETURN VALUES::
+   成功の場合は 0、失敗の場合は -1
+
+ * 既存ファイルを length バイトに切り詰める。
+ * file_size > length の場合は length より後のデータには参照出来なくなる。
+ * file_size < length の場合はシステム依存となる。
+   * ファイルを拡張するシステムでは間隙が出来る
+
+次のようなプログラムで ftruncate(2) の挙動を確かめる事が出来る。
+
+{{{
+#!c
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include "error.h"
+
+#define MAXLENGTH 4098
+
+int main(int argc, char **argv) {
+    int fd, n;
+    char *filepath, buf[MAXLENGTH];
+    off_t orig_file_length, truncate_length;
+    struct stat stat_buf;
+    
+    if (argc != 3) {
+        err_quit("usage: %s filename truncate_length", argv[0]);
+    }
+
+    filepath = argv[1];
+    truncate_length = (off_t) atoi(argv[2]);
+    
+    if (( fd = open(filepath, O_RDWR) ) < 0) {
+        err_sys("open error for %s", filepath);
+    }
+
+    if (fstat(fd, &stat_buf) < 0) {
+        err_sys("fstat error");
+    }
+
+    printf("filesize: %d. truncate size: %d.\n", (int) stat_buf.st_size, (int) truncate_length);
+
+    orig_file_length = stat_buf.st_size;
+
+    if (ftruncate(fd, truncate_length) < 0) {
+        err_sys("ftruncate error");
+    }
+
+    if (orig_file_length > truncate_length) {
+        if (lseek(fd, truncate_length, SEEK_SET) < 0) {
+            err_sys("lseek error");
+        }
+
+        if ((n = read(fd, buf, (size_t) (orig_file_length - truncate_length))) < 0) {
+            err_ret("read error");
+        }
+        else {
+            printf("%s (read buffer: %d bytes)\n", buf, n);
+        }
+    }
+    else {
+        if (lseek(fd, orig_file_length, SEEK_SET) < 0) {
+            err_sys("lseek error");
+        }
+
+        if ((n = read(fd, buf, (size_t) (truncate_length - orig_file_length))) < 0) {
+            err_ret("read error");
+        }
+        else {
+            printf("%s (read buffer: %d bytes)\n", buf, n);
+        }
+    }
+
+    close(fd);
+
+    exit(0);
+}
+}}}
+
+これを使って od -tcx1 などを使って確認すると良く分かります。
+
+これらの二つの関数は SVR4, 4.3+BSD でのみ対応していて、POSIX.1 や XPG3 の規格には無い。
+ゆえに UNIX にはファイルを切り詰める標準的な手法は存在しないので真にポータブルな実装をする場合には必要なバイト数分をコピーしてファイルを切り詰める必要がある。
+
+SVR4 には fcntl(2) に F_FREESP がある。
+
+== 4.14 ファイルシステム ==
+
+SVR4には二つのファイルシステムがある。
+
+ * UNIX System V ファイルシステム (S5)
+ * 統合化ファイルシステム (UFS)
+
+これらの違いについては p36 にある図2.6を参照。
+
+ * ディスクは複数のパーティションに分割されている
+ * 各パーティションにファイルシステムが収められる
+ * ファイルシステムは以下から成る
+   * ブートブロック
+   * スーパーブロック
+   * iリスト (固定長であるiノードのリスト)
+   * ディレクトリブロックとデータブロック
+
+これらはp88の図4.7を参照。
+
+ * iノードは自身を参照するディレクトリブロックの個数を収めるリンクカウント (stat 構造体の st_nlink フィールド) を持っている。このリンクカウントが0になって初めてファイルを削除出来る。
+   * こうなった場合にiノードが参照しているデータブロックを初めて解放出来る
+   * ディレクトリ項目を削除する行為を delete と言わず unlink というのもこの為である。
+ * それ以外はシンボリックリンクと呼ぶ。iノードではそれがシンボリックリンクであるとシステムが判断出来るようにファイルの種類 S_IFLNK (stat 構造体の st_mode に対して S_ISLNK が真となる) となっている。
+ * ファイルに関する情報のほとんど全てはiノードから得られる。ディレクトリ項目にはiノードとファイル名の二つが収められているだけである。
+ * ディレクトリ項目内のiノード番号は同じファイルシステム内のiノードを指すため、別のファイルシステムのiノードを指すようなディレクトリ項目は使えない。
+   * ln(1) コマンドはファイルシステムをまたげない
+ * 同一ファイルシステム上でのファイル名の変更は既存のiノードを指す新たなディレクトリ項目を作成し、古いディレクトリ項目を削除するだけで済む。mv(1)はそのような実装になっている。
+ 
+{{{
+$ mkdir testdir
+}}}
+
+については、
+
+{{{
+$ stat -f "%l" /path/to/dir # (OSX)
+$ stat --format "%h" /path/to/dir # (Linux)
+}}}
+
+などで確認すると良く分かる。
+
+== 4.15 link, unlink, remove, rename 関数 ==
+
+{{{
+#!c
+#include <unistd.h>
+
+int link(const char *path1, const char *path2);
+}}}
+
+ RETURN VALUES::
+   成功の場合は 0、失敗の場合は -1
+
+link(2) は path2 に path1 が指しているiノードを指す新しいディレクトリ項目を作成する。
+
+ * 新規ディレクトリ項目の作成とリンクカウントの増加はアトミック操作である必要がある。
+ * SVR4, 4.3+BSDのほとんどの場合はどちらのパス名も同じファイルシステムにある必要がある。
+   * POSIX.1 では異なるファイルシステムをまたがっても良い
+ * ディレクトリへの新たなリンクの作成はスーパーユーザーのみが可能である。
+   * ファイルシステムへのループを作る危険性がある事から。
+
+{{{
+#!c
+#include <unistd.h>
+
+int unlink(const char *path);
+}}}
+
+ RETURN VALUES::
+   成功の場合は 0、失敗の場合は -1
+
+unlink(2) は path で示されるディレクトリ項目を削除し、リンクカウントを減少させる。
+
+ * ディレクトリ項目の削除を行うため、そのディレクトリ項目が含まれるディレクトリの書き込み許可及び実行許可が必要である
+ * ディレクトリにスティッキービットがたっている場合は上記に加えて、ファイルの所有者またはディレクトリの所有者、またはスーパーユーザーである事が求められる (4.10参照)
+ * リンクカウントが0になって初めてファイルの内容を削除出来る。ただしプロセスがファイルをオープンしているとファイルの内容は削除されない。
+   * カーネルはファイルがクローズされるとファイルをオープンしているプロセスの個数を検査し、これが0であるときにリンクカウントを検査し、これが0であるとファイルの内容を削除する。
+
+[https://github.com/zigorou/apue/blob/master/4/unlink.c プログラム4.5 ファイルをオープンし、アンリンクする]
+
+{{{
+#!c
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include "error.h"
+
+int main(void) {
+#ifdef DEBUG
+    system("ls -l tempfile");
+#endif
+
+    if (open("tempfile", O_RDWR|O_CREAT) < 0)
+        err_sys("open error");
+
+    if (unlink("tempfile") < 0)
+        err_sys("unlink error");
+
+    printf("file unlinked\n");
+
+#ifdef DEBUG
+    system("ls -l tempfile");
+    system("df ./");
+#endif
+
+    sleep(2);
+    printf("done\n");
+
+#ifdef DEBUG
+    system("df ./");
+#endif
+
+    exit(0);
+}
+}}}
+
+{{{
+$ dd bs=9240990 count=1 if=/dev/zero of=tempfile
+}}}

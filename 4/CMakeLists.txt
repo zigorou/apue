@@ -41,6 +41,12 @@ target_link_libraries(getcwd apue)
 add_executable(devrdev devrdev.c)
 target_link_libraries(devrdev apue)
 
+### examples
+
+# 4.13
+add_executable(ftruncate ftruncate.c)
+target_link_libraries(ftruncate apue)
+
 ### execises 
 # 4.1
 add_executable(filetype2 filetype2.c)
