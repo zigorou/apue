@@ -53,6 +53,11 @@ target_link_libraries(devrdev apue)
 add_executable(ftruncate ftruncate.c)
 target_link_libraries(ftruncate apue)
 
+# 4.15
+add_executable(rename rename.c)
+target_link_libraries(rename apue)
+
+
 ### execises 
 # 4.1
 add_executable(filetype2 filetype2.c)

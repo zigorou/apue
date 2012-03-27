@@ -1,3 +1,5 @@
+[[PageOutline]]
+
 = 4. ファイルとディレクトリ(2) =
 
 == 4.13 ファイルの切り詰め ==
@@ -188,36 +190,102 @@ unlink(2) は path で示されるディレクトリ項目を削除し、リン�
 #include <unistd.h>
 
 #include "error.h"
+#include "unlink_config.h"
 
 int main(void) {
-#ifdef DEBUG
-    system("ls -l tempfile");
-#endif
-
     if (open("tempfile", O_RDWR|O_CREAT) < 0)
         err_sys("open error");
 
     if (unlink("tempfile") < 0)
         err_sys("unlink error");
 
-    printf("file unlinked\n");
+    printf("### file unlinked\n");
 
-#ifdef DEBUG
+#ifdef UNLINK_DEBUG
     system("ls -l tempfile");
-    system("df ./");
+    system("df .");
+#else
+    sleep(UNLINK_SLEEP);
 #endif
 
-    sleep(2);
-    printf("done\n");
-
-#ifdef DEBUG
-    system("df ./");
-#endif
+    printf("### done\n");
 
     exit(0);
 }
 }}}
 
+のようなコードを書き、
+
 {{{
-$ dd bs=9240990 count=1 if=/dev/zero of=tempfile
+#!sh
+#!/bin/sh
+
+dd bs=10485760 count=1 if=/dev/zero of=tempfile
+echo "### start"
+ls -l tempfile
+df .
+echo "### run ./unlink"
+./unlink
+echo "### exit ./unlink"
+df .
 }}}
+
+とすると、unlink(2) が成功してもプロセスが終了するまで df の結果から空き容量が増えない事が確認出来る。
+
+remove(3) は、
+
+{{{
+#!c
+#include <stdio.h>
+int remove(const char *path);
+}}}
+
+ RETURN VALUES::
+   成功の場合は 0、失敗の場合は -1
+
+ ファイルに対して::
+   unlink(2) に等しい
+ ディレクトリに対して::
+   rmdir(2) に等しい
+
+という動作になっている。また rename(2) は、
+
+{{{
+#!c
+int rename(const char *old, const char *new);
+}}}
+
+ RETURN VALUES::
+   成功の場合は 0、失敗の場合は -1
+
+rename(2) の動作に必要な権限、注意事項等は下記。
+
+ * regular file -> regular file の場合は新旧双方のディレクトリ項目を書き換える為、両方に W_OK が必要
+ * directory -> non exist の場合は単なる名称変更
+ * directory -> directory の場合は newname の方が空ディレクトリである必要がある
+ * directory -> directory の場合は newname に oldname を含めてはいけない (/usr/foo -> /usr/foo/newname みたいの)
+ * oldname == newname の場合は何もせずに成功する
+
+== 4.16 シンボリックリンク ==
+
+== 4.17 symlink と readlink 関数 ==
+
+== 4.18 ファイルの時刻 ==
+
+== 4.19 utime 関数 ==
+
+== 4.20 mkdir と rmdir 関数 ==
+
+== 4.21 ディレクトリの読み取り ==
+
+== 4.22 chdir, fchdir, getcwd 関数 ==
+
+== 4.23 特殊装置ファイル ==
+
+== 4.24 sync と fsync 関数 ==
+
+== 4.25 ファイルアクセスパーミッションビットのまとめ ==
+
+== 4.26 まとめ ==
+
+== 4.27 演習問題 ==
