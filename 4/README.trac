@@ -20,7 +20,7 @@ int truncate(const char *path, off_t length);
  * file_size < length の場合はシステム依存となる。
    * ファイルを拡張するシステムでは間隙が出来る
 
-次のようなプログラムで ftruncate(2) の挙動を確かめる事が出来る。
+[https://github.com/zigorou/apue/blob/master/4/ftruncate.c 次のようなプログラム]で ftruncate(2) の挙動を確かめる事が出来る。
 
 {{{
 #!c
@@ -266,9 +266,94 @@ rename(2) の動作に必要な権限、注意事項等は下記。
  * directory -> directory の場合は newname に oldname を含めてはいけない (/usr/foo -> /usr/foo/newname みたいの)
  * oldname == newname の場合は何もせずに成功する
 
+[https://github.com/zigorou/apue/blob/master/4/rename.c サンプル]も書いてみました。
+
+{{{
+#!c
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "error.h"
+
+int main(int argc, char **argv) {
+    char *oldpath, *newpath;
+
+    if (argc != 3) {
+        err_quit("usage: %s <oldpath> <newpath>", argv[0]);
+    }
+
+    oldpath = argv[1];
+    newpath = argv[2];
+
+    if (rename(oldpath, newpath) < 0) {
+        err_sys("rename(2) error for %s to %s", oldpath, newpath);
+    }
+    else {
+        printf("rename(2) was suceeded\n");
+    }
+
+    exit(0);
+}
+}}}
+
 == 4.16 シンボリックリンク ==
 
+ハードリンクの制約のおさらいは、
+
+ * リンクとファイルは同じファイルシステム上にある必要がある
+   * 現在はその限りではない
+ * ディレクトリに対するハードリンクはスーパーユーザーのみが可能
+
+一方でシンボリックリンクはファイルやディレクトリ階層を別の場所に移動する為に使う。
+主要な関数がシンボリックリンクを区別するしないはp95の図4.10を参照のこと。
+
+{{{
+#!sh
+test -d foo && rm -rf foo
+mkdir foo
+touch foo/a
+ln -s ../foo foo/testdir
+ls -l foo
+}}}
+
+のような構造を作ると foo/testdir -> foo を指す事になりループを作る事が可能である。
+ftw(3) などは最終的に ELOOP を吐いてエラーになってしまう。
+
+また以下の操作を見てみる。
+
+{{{
+#!sh
+ln -s /no/such/file myfile
+ls myfile
+cat myfile
+ls -l myfile
+}}}
+
+cat(1) は open(2) するが open(2) はシンボリックリンクを巡るため、そのシンボリックリンクで示されるファイルが存在しない為にエラーとなる。
+
 == 4.17 symlink と readlink 関数 ==
+
+{{{
+#!c
+#include <unistd.h>
+
+int symlink(const char *path1, const char *path2);
+}}}
+
+ RETURN VALUES::
+   成功の場合は 0、失敗の場合は -1
+
+{{{
+#include <unistd.h>
+ssize_t readlink(const char *restrict path, char *restrict buf, size_t bufsize);
+}}}
+
+ RETURN VALUES::
+   成功の場合は読み取ったバイト数、失敗の場合は -1
+
+ * symlink(2) はシンボリックリンクを作成する関数。path1 は既存である必要は無い
+ * readlink(2) は open(2) だとシンボリックリンクを巡ってしまうため、シンボリックリンクの名前を読む方法として存在している。
+ 
 
 == 4.18 ファイルの時刻 ==
 

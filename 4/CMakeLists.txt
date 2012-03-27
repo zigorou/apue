@@ -57,6 +57,9 @@ target_link_libraries(ftruncate apue)
 add_executable(rename rename.c)
 target_link_libraries(rename apue)
 
+# 4.17
+add_executable(symlink_and_readlink symlink_and_readlink.c)
+target_link_libraries(symlink_and_readlink apue)
 
 ### execises 
 # 4.1
