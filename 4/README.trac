@@ -354,10 +354,119 @@ ssize_t readlink(const char *restrict path, char *restrict buf, size_t bufsize);
  * symlink(2) はシンボリックリンクを作成する関数。path1 は既存である必要は無い
  * readlink(2) は open(2) だとシンボリックリンクを巡ってしまうため、シンボリックリンクの名前を読む方法として存在している。
  
+[https://github.com/zigorou/apue/blob/master/4/symlink_and_readlink.c サンプル]も書いてみました。
+
+{{{
+#!c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include "error.h"
+#include "path_alloc.h"
+
+int main(int argc, char **argv) {
+    char *actualpath, *sympath, *path_buf;
+    int buf_size;
+
+    if (argc != 3) {
+        err_quit("usage: %s <actualpath> <sympath>", argv[0]);
+    }
+
+    actualpath = argv[1];
+    sympath    = argv[2];
+
+    if (symlink(actualpath, sympath) < 0) {
+        err_sys("symlink error for %s to %s", actualpath, sympath);
+    }
+
+    path_buf = path_alloc(&buf_size);
+
+    if (readlink(sympath, path_buf, buf_size) < 0) {
+        err_sys("readlink error for %s", sympath);
+    }
+
+    printf("%s -> %s\n", sympath, path_buf);
+    exit(0);
+}
+}}}
 
 == 4.18 ファイルの時刻 ==
 
+stat(2) の struct stat にあるフィールド中にあるファイルに関連づけられた三つの時刻は下記。
+
+ || フィールド名 || 意味 || 例 || ls(1) ||
+ || st_atime || ファイルの最終参照(access)時刻 || read || -u ||
+ || st_mtime || ファイルの最終修正(modification)時刻 || write || デフォルト ||
+ || st_ctime || iノードの最終状態変更(change)時刻 || chmod, chown || -c ||
+
+iノードの最終参照時刻は存在しない。そのため access(2), stat(2) はこれらの時刻を変更しない。
+find(1) では -atime, -mtime, -ctime オプションを検索として利用出来る。
+ls(1) の場合は明示的に -u (atime) or -c (ctime) をつけると明示的にそれらの時刻を表示し、指定しなかった場合に mtime が表示される。
+
 == 4.19 utime 関数 ==
+
+{{{
+#!c
+#include <utime.h>
+int utime(const char *path, const struct utimbuf *times);
+
+struct utimbuf {
+    time_t actime;          /* Access time */
+    time_t modtime;         /* Modification time */
+};
+}}}
+
+下記のそれぞれの操作に対して、必要となる権限をまとめたのが下記である。
+
+ 1. times が null ポインタの場合は、参照時刻、修正時刻ともに現在時刻になる。
+   * プロセスの実効ユーザーIDとファイルの所有者のIDが等しい
+   * またはプロセスはファイルに対して書き込み許可を有する
+ 2. times が null ポインタで無い場合、times が示す時刻になる。
+   * プロセスの実効ユーザーIDとファイルの所有者のIDが等しい
+   * スーパーユーザーである
+
+[https://github.com/zigorou/apue/blob/master/4/zap.c プログラム4.6 utime 関数の例]
+
+{{{
+#!c
+#include <fcntl.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <utime.h>
+
+#include "error.h"
+
+int main(int argc, char **argv) {
+    int            i;
+    struct stat    statbuf;
+    struct utimbuf timebuf;
+
+    for (i = 0; i < argc; i++) {
+        if (stat(argv[i], &statbuf) < 0) {
+            err_ret("%s: stat error", argv[i]);
+            continue;
+        }
+
+        if (open(argv[i], O_RDWR|O_TRUNC) < 0) {
+            err_ret("%s: open error", argv[i]);
+            continue;
+        }
+
+        timebuf.actime  = statbuf.st_atime;
+        timebuf.modtime = statbuf.st_mtime;
+
+        if (utime(argv[i], &timebuf) < 0) {
+            err_ret("%s: utime error", argv[i]);
+            continue;
+        }
+    }
+
+    exit(0);
+}
+}}}
+
+
 
 == 4.20 mkdir と rmdir 関数 ==
 

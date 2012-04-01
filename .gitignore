@@ -46,6 +46,7 @@ install_manifest.txt
 4/unlink_config.h
 4/rename
 4/symlink_and_readlink
+4/times
 5/fgetcfputc
 5/fgetsfputs
 5/buf
