@@ -466,11 +466,62 @@ int main(int argc, char **argv) {
 }
 }}}
 
-
-
 == 4.20 mkdir と rmdir 関数 ==
 
+{{{
+#!c
+#include <sys/stat.h>
+int mkdir(const char *path, mode_t mode);
+}}}
+
+ RETURN VALUES::
+   成功の場合は 0、失敗の場合は -1
+
+ * 新たに空のディレクトリを作る
+ * そのディレクトリ項目内に ".", ".." が自動的に作られる
+ * ディレクトリ項目の内容を参照するために少なくとも1つの実行ビットが必要
+
+{{{
+#!c
+#include <unistd.h>
+int rmdir(const char *path);
+}}}
+
+ RETURN VALUES::
+   成功の場合は 0、失敗の場合は -1
+
+ * 空のディレクトリを削除する
+ * ディレクトリのリンクカウントが0になり、かつ他のプロセスがディレクトリをオープンしていなければ、ディレクトリが占めていた領域が解放される
+
 == 4.21 ディレクトリの読み取り ==
+
+ * ディレクトリの読み取り許可があればどのプロセスもディレクトリを読める
+ * ディレクトリの書き込みはカーネルのみが出来る
+ * ディレクトリに対する書き込み許可ビットと実行許可ビットはそのディレクトリで新たにファイルを作成したり削除したり出来るかどうかを決める物
+   * ディレクトリ自体の書き込みが出来る訳ではない
+ * ディレクトリの実装は UNIX の実装に依存する
+
+{{{
+#!c
+#include <dirent.h>
+
+int closedir(DIR *dirp);
+DIR *opendir(const char *dirname);
+struct dirent *readdir(DIR *dirp);
+void rewinddir(DIR *dirp);
+}}}
+
+dirent 構造体は、少なくとも、
+
+{{{
+#!c
+struct dirent {
+    ino_t d_ino;
+    char d_name[NAME_MAX + 1];
+};
+}}}
+
+の2つのメンバーを持つ。
 
 == 4.22 chdir, fchdir, getcwd 関数 ==
 
