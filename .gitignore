@@ -53,6 +53,9 @@ install_manifest.txt
 5/tempfiles
 5/tempnam
 6/getpwnam
+6/get_shadow_passwd
+6/my_uname
+6/my_date
 *.[oa]
 *.dylib
 *.so
