@@ -57,6 +57,9 @@ install_manifest.txt
 6/my_uname
 6/my_date
 7/doatexit
+7/echoarg
+7/my_env1
+7/my_env2
 *.[oa]
 *.dylib
 *.so
