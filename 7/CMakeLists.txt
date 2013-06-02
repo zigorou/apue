@@ -12,3 +12,7 @@ target_link_libraries(my_env1 apue)
 
 add_executable(my_env2 my_env2.c)
 target_link_libraries(my_env2 apue)
+
+# 7.5
+add_executable(testjmp testjmp.c)
+target_link_libraries(testjmp apue)

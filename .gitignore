@@ -60,6 +60,7 @@ install_manifest.txt
 7/echoarg
 7/my_env1
 7/my_env2
+7/testjmp
 *.[oa]
 *.dylib
 *.so
